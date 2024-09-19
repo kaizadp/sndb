@@ -10,7 +10,7 @@ The SNDB is a global dataset for soil microbial necromass, compiled using amino 
 including primary research papers and meta-analyses. 
 We include necromass indices (amino sugar concentrations and calculated bacterial/fungal/microbial necromass values) as well as site and soil-level parameters (e.g. ecosystem type, soil C and N content, microbial biomass, etc.) that provide context to the samples. 
 
-v1.0.0 of this database contains 2693 records from 186 published papers.
+v1.0.0 of this database contains 2668 records from 186 published papers.
 
 ---
 
