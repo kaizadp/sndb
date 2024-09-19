@@ -3,8 +3,9 @@ Soil Necromass Database (SNDB): Exploration
 
 This report contains code and output for exploratory analysis of the
 SNDB v1.0.0.  
-This .md file contains the output. For the code, refer to the [.Rmd
-file](https://github.com/kaizadp/sndb/blob/main/exploratory/report-exploratory.md).
+This .md file contains the output report. For the code, refer to the
+[.Rmd
+file](https://github.com/kaizadp/sndb/blob/main/exploratory/report-exploratory.Rmd).
 
 ## FIGURES
 
