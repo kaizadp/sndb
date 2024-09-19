@@ -1,0 +1,307 @@
+---
+title: "Soil Necromass Database (SNDB): Exploration"
+output: 
+  github_document:
+  html_preview: true
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+This report contains code and output for exploratory analysis of the SNDB v1.0.0.  
+This .md file contains the output report. For the code, refer to the [.Rmd file](https://github.com/kaizadp/sndb/blob/main/exploratory/report-exploratory.md).
+
+
+```{r packages}
+
+library(tidyverse) # for general cleaning and visualization
+library(rnaturalearth) # to plot the map
+library(plotbiomes) # for plotting Whittaker Biomes, install from Github using line below
+# devtools::install_github("valentinitnelav/plotbiomes", force = TRUE)
+library(ggdist) # for raincloud plots
+
+# set custom ggplot2 theme
+theme_sndb <- function() {  # this for all the elements common across plots
+  theme_bw() %+replace%
+    theme(legend.position = "top",
+          legend.key=element_blank(),
+          legend.title = element_text(size = 14, hjust = 0),
+          legend.text = element_text(size = 12),
+          legend.key.size = unit(1.5, 'lines'),
+          legend.background = element_rect(colour = NA),
+          panel.border = element_rect(color="black",linewidth=1, fill = NA),
+          
+          plot.title = element_text(hjust = 0, size = 14),
+          axis.text = element_text(size = 12, color = "black"),
+          axis.title = element_text(size = 14, face = "bold", color = "black"),
+          
+          # formatting for facets
+          panel.background = element_blank(),
+          strip.background = element_rect(colour="white", fill="white"), #facet formatting
+          panel.spacing.x = unit(1, "lines"), #facet spacing for x axis
+          panel.spacing.y = unit(1.5, "lines"), #facet spacing for x axis
+          strip.text.x = element_text(size=12, face="bold"), #facet labels
+          strip.text.y = element_text(size=12, face="bold", angle = 270) #facet labels
+    )
+}
+theme_set(theme_sndb())
+
+```
+
+
+
+```{r import_database}
+
+db_processed = read.csv("database/sndb_data.csv", na = "")
+
+```
+
+## FIGURES 
+
+### Geographical Distribution
+
+
+```{r map_data_points}
+
+world <- ne_countries(scale = "medium",  returnclass = "sf", type = "countries")
+
+sndb_map_data = 
+  db_processed %>% 
+  distinct(latitude, longitude, climate_type) %>% 
+  drop_na() %>% 
+  mutate(climate_type = factor(climate_type, levels = c("arid", "equatorial", "temperate", "snow", "polar")))
+
+world %>% 
+  ggplot()+
+  geom_sf(color = NA, alpha = 0.7)+
+  geom_point(data = sndb_map_data,
+             aes(x = longitude, y = latitude,
+                 color = climate_type), 
+             size = 2)+
+  labs(color = "",
+       x = "",
+       y = "")+
+  scale_color_viridis_d(option = "turbo", direction = -1, na.translate = F)+
+  theme(axis.text = element_text(color = "black"),
+        legend.position = "top")+
+  guides(colour = guide_legend(nrow = 1))+
+  NULL
+
+```
+
+
+### Distribution by MAT-MAP
+
+```{r mat-map, fig.height=6.5, fig.width=7.5}
+
+# plot MAT/MAP distribution
+db_processed %>% 
+  ggplot(aes(x = MAT, y = MAP/10))+
+  geom_point(aes(color = climate_type), size = 3)+
+  labs(x = "
+         Mean annual temperature (°C)",
+       y = "Mean annual precipitation (cm)
+         ",
+       color = "")+
+  scale_color_viridis_d(option = "turbo", direction = -1, na.translate = F)+
+  theme(legend.position = c(0.15, 0.8))+
+  NULL
+```
+
+### Distribution by Whittaker Biome
+
+```{r whittaker, fig.height=5, fig.width=8}
+# this chunk uses the {plotbiomes} package.
+
+ggplot() +
+  # add biome polygons
+  geom_polygon(data = Whittaker_biomes,
+               aes(x    = temp_c,
+                   y    = precp_cm,
+                   fill = biome),
+               # adjust polygon borders
+               colour = "gray98",
+               linewidth = 1) +
+  geom_point(data = db_processed %>% mutate(mat = as.numeric(MAT), map_mm = as.numeric(MAP)), 
+             aes(x = mat, y = map_mm/10), 
+             size = 2,
+             show.legend = F)+
+  labs(x = "
+         Mean annual temperature (°C)",
+       y = "Mean annual precipitation (cm)
+         ", 
+       fill = "Biome")+
+  theme(legend.position = "right")
+
+```
+
+
+### Distribution by ecosystem
+
+```{r subset}
+# create a subset for subsequent work
+# we want only bulk soil (not aggregates), and columns for ecosystem, climate, biome 
+
+db_subset <- 
+  db_processed %>% 
+  dplyr::select(contains("necromass"), ecosystem, climate_type, biome_name, fraction_scheme) %>% 
+  filter(fraction_scheme == "bulk soil") %>% 
+  mutate(bacterial_percent = 100 * bacterial_necromass_C/microbial_necromass_C)
+```
+
+
+```{r ecosystem_stats}
+# Determining how microbial necromass C (MNC) and bacterial necromass carbon (BNC) are influenced by ecosystem type,
+# using ANOVA and Tukey's HSD
+
+a_mnc = aov(microbial_necromass_C ~ ecosystem, data = db_subset %>% filter(!is.na(ecosystem)))
+h_mnc = agricolae::HSD.test(a_mnc, "ecosystem")$groups %>% rownames_to_column("ecosystem")
+
+a_bnc = aov((bacterial_percent) ~ ecosystem, data = db_subset %>% filter(!is.na(ecosystem)))
+h_bnc = agricolae::HSD.test(a_bnc, "ecosystem")$groups %>% rownames_to_column("ecosystem")
+
+```
+
+```{r jitter-ecosystem, fig.height=4, fig.width=7}
+# figures showing distribution of MNC and BNC:MNC by ecosystem
+# using raincloud plots to highlight data distribution
+
+gg_mnc = 
+  db_subset %>% 
+  filter(!is.na(ecosystem)) %>% 
+  ggplot(aes(x = ecosystem, y = microbial_necromass_C/1000,
+             color = ecosystem, fill = ecosystem))+
+  ggdist::stat_halfeye(aes(), 
+                       size = 1, alpha = 0.5,
+                       position = position_nudge(x = 0.2), width = 0.5
+  )+
+  geom_jitter(aes(), width = 0.1, )  +
+  geom_text(data = h_mnc,
+            aes(y = 200, label = groups), color = "black", size = 5)+
+  labs(y = "Microbial Necromass C, g/kg",
+       x = "Ecosystem")+
+  scale_y_continuous(labels = scales::comma)+
+  scale_color_brewer(palette = "Dark2", direction = -1)+
+  scale_fill_brewer(palette = "Dark2", direction = -1)+
+  theme(legend.position = "none")
+
+
+gg_bnc = 
+  db_subset %>% 
+  filter(!is.na(ecosystem)) %>% 
+  ggplot(aes(x = ecosystem, y = bacterial_percent,
+             color = ecosystem, fill = ecosystem))+
+  ggdist::stat_halfeye(aes(), 
+                       size = 1, alpha = 0.5,
+                       position = position_nudge(x = 0.2), width = 0.5
+  )+
+  geom_jitter(aes(), width = 0.1, )  +
+  geom_text(data = h_bnc, 
+            aes(y = 110, label = groups), color = "black", size = 5)+
+  labs(y = "BNC:MNC, %",
+       x = "Ecosystem")+
+  scale_y_continuous(labels = scales::comma)+
+  scale_color_brewer(palette = "Dark2", direction = -1)+
+  scale_fill_brewer(palette = "Dark2", direction = -1)+
+  theme(legend.position = "none")
+
+```
+
+
+
+```{r plot-latitude}
+# figures showing distribution of MNC by latitude and depth
+
+gg_depth <- 
+  db_processed %>% 
+  filter(lyr_top <= 100) %>% 
+  ggplot(aes(y = lyr_bot, x = microbial_necromass_C/1000))+
+  geom_point(color = "darkgreen")+
+  labs(x = "Microbial Necromass C, g/kg",
+       y = "Bottom depth, cm")+
+  scale_y_reverse()
+
+gg_lat = 
+  db_processed %>% 
+  filter(!is.na(ecosystem)) %>% 
+  ggplot(aes(y = latitude, x = microbial_necromass_C/1000))+
+  geom_point(color = "brown")+
+  scale_color_brewer(palette = "Dark2", direction = -1)+
+  labs(x = "Microbial Necromass C, g/kg")
+
+```
+
+
+```{r gg-combined-distrib, fig.height=10, fig.width=12}
+
+cowplot::plot_grid(gg_mnc, gg_bnc, gg_lat, gg_depth, labels = "AUTO")
+
+```
+
+
+#### Sample count by depth
+
+```{r depth, fig.height=5, fig.width=5}
+
+depth_summary = 
+  db_processed %>%
+  dplyr::select(lyr_top, lyr_bot) %>% 
+  mutate_all(as.numeric) %>% 
+  filter(lyr_top < 1000) %>% 
+  mutate(lyr_top = round(lyr_top, digits = -1),
+         lyr_bot = round(lyr_bot, digits = -1)) %>% 
+  group_by(lyr_top, lyr_bot) %>% 
+  dplyr::summarise(n = n()) %>% 
+  ungroup() %>% 
+  arrange(n, lyr_top, lyr_bot)
+
+db_processed %>% 
+  ggplot(aes(x = as.numeric(lyr_bot)))+
+  geom_histogram(color = "black", fill = "black")+
+  coord_flip()+
+  scale_x_reverse()+
+  labs(x = "Bottom depth, cm",
+       y = "Count")
+
+```
+
+of the 2693 datapoints, 2334 data points are in the top 20 cm (lyr_bot >= 20)
+
+
+---
+
+## TABLES
+
+### Sample count by biome
+
+```{r}
+db_processed %>% 
+  group_by(climate_type) %>% 
+  dplyr::summarise(n = n()) %>% 
+  knitr::kable()
+```
+
+
+### Sample count by ecosystem
+```{r}
+db_processed %>% 
+  group_by(ecosystem) %>% 
+  dplyr::summarise(n = n()) %>% 
+  knitr::kable()
+```
+
+---
+
+<details>
+<summary> Session Info </summary>
+
+Date run: `r Sys.Date()`
+
+```{r}
+sessionInfo()
+```
+
+</details>
