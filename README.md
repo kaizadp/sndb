@@ -18,7 +18,7 @@ The database is composed of three files:
 3. `sndb_metadata.docx` providing full documentation for all fields in the two data files.
 
 ## Data access
-Users can download the flat (.csv) files from the [`database`](https://github.com/kaizadp/sndb/database) folder.  
+Users can download the flat (.csv) files from the [`database`](https://github.com/kaizadp/sndb/tree/main/database) folder.  
 We request that users cite this dataset and the corresponding database description paper once published. We also encourage users to cite all primary publications and and also involve data contributors as co-authors when possible. 
 
 ## Contributing to this database
