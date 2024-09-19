@@ -1,5 +1,6 @@
 
 # The Soil Necromass Database (SNDB)
+[![DOI](https://zenodo.org/badge/859586473.svg)](https://zenodo.org/doi/10.5281/zenodo.13800115)
 
  <a href='https://github.com/kaizadp/sndb'><img src='sndb_logo.jpg' align="right" height="250" /></a>
 
