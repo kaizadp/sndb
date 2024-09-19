@@ -1,3 +1,5 @@
+ <a href='https://github.com/kaizadp/sndb'><img src='sndb_logo.jpg' align="right" height="250" /></a>
+
 # The Soil Necromass Database (SNDB)
 
 Kaizad F. Patel, Avni Malhotra
