@@ -7,6 +7,8 @@ This .md file contains the output report. For the code, refer to the
 [.Rmd
 file](https://github.com/kaizadp/sndb/blob/main/exploratory/report-exploratory.Rmd).
 
+SNDB v1.0.0 contains 2668 records from 186 studies.
+
 ## FIGURES
 
 ### Geographical Distribution
@@ -29,7 +31,7 @@ file](https://github.com/kaizadp/sndb/blob/main/exploratory/report-exploratory.R
 
 ![](report-exploratory_files/figure-gfm/depth-1.png)<!-- -->
 
-of the 2693 datapoints, 2334 data points are in the top 20 cm (lyr_bot
+of the 2668 datapoints, 2381 data points are in the top 20 cm (lyr_bot
 \>= 20)
 
 ------------------------------------------------------------------------
@@ -40,10 +42,10 @@ of the 2693 datapoints, 2334 data points are in the top 20 cm (lyr_bot
 
 | climate_type |    n |
 |:-------------|-----:|
-| arid         |  137 |
+| arid         |  113 |
 | equatorial   |   69 |
 | polar        |   67 |
-| snow         | 1305 |
+| snow         | 1304 |
 | temperate    | 1062 |
 | NA           |   53 |
 
@@ -51,8 +53,8 @@ of the 2693 datapoints, 2334 data points are in the top 20 cm (lyr_bot
 
 | ecosystem |    n |
 |:----------|-----:|
-| cropland  | 1453 |
-| forest    |  535 |
+| cropland  | 1452 |
+| forest    |  511 |
 | grassland |  272 |
 | wetland   |  418 |
 | NA        |   15 |

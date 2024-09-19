@@ -59,6 +59,8 @@ db_processed = read.csv("database/sndb_data.csv", na = "")
 
 ```
 
+SNDB v1.0.0 contains `r max(db_processed$SNDB_record_number)` records from `r max(db_processed$SNDB_study_number)` studies.
+
 ## FIGURES 
 
 ### Geographical Distribution
@@ -268,7 +270,7 @@ db_processed %>%
 
 ```
 
-of the 2693 datapoints, 2334 data points are in the top 20 cm (lyr_bot >= 20)
+of the `r max(db_processed$SNDB_record_number)` datapoints, 2381 data points are in the top 20 cm (lyr_bot >= 20)
 
 
 ---
