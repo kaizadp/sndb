@@ -4,7 +4,7 @@
 
  <a href='https://github.com/kaizadp/sndb'><img src='sndb_logo.jpg' align="right" height="250" /></a>
 
-Kaizad F. Patel, Avni Malhotra
+Kaizad F. Patel, Avni Malhotra, Sophia A. McKever, Vanessa L. Bailey, Kirsten Hofmockel
 
 
 The SNDB is a global dataset for soil microbial necromass, compiled using amino sugar data from published studies, 
